@@ -88,11 +88,12 @@ def search():
         else:
             print('Помилка. Введіть правильну назву файлу')
 
-    if filename == keywords_files[0]:
+    if filename == conversations_files[0]:
         result = {}
         result['keywords_files'] = [file.split('.')[0] for file in keywords_files]
         result['conversations_files'] = {}
     else:
+        print(1)
         with open('result.json', encoding='utf-8') as file:
             result = json.loads(file.read())
 

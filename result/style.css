@@ -41,3 +41,7 @@ p {
 .grey {
 	background-color: #88898a;
 }
+
+.filename {
+    font-weight: 600;
+}
