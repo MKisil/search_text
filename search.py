@@ -82,9 +82,9 @@ def search():
     while True:
         filename = input('Введіть назву файлу із якого потрібно почати(наприклад ria_00.txt): ')
         if filename in conversations_files:
-            index_filename = conversations_files.index(filename)
-            conversations_files = conversations_files[index_filename:]
             break
+        elif filename == 'вийти':
+            exit()
         else:
             print('Помилка. Введіть правильну назву файлу')
 
@@ -93,7 +93,8 @@ def search():
         result['keywords_files'] = [file.split('.')[0] for file in keywords_files]
         result['conversations_files'] = {}
     else:
-        print(1)
+        index_filename = conversations_files.index(filename)
+        conversations_files = conversations_files[index_filename:]
         with open('result.json', encoding='utf-8') as file:
             result = json.loads(file.read())
 

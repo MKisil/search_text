@@ -12,12 +12,14 @@ th {
 
 td {
 	background-color:  	#DCDCDC;
-	padding: 12px;
+	padding: 12px 12px 0 12px;
+	text-align: center;
 }
 
 p {
     margin: 5 0 0 0;
     font-size: 13px;
+
 }
 
 .td__span {
