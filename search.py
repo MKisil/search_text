@@ -88,7 +88,9 @@ def search():
         else:
             print('Помилка. Введіть правильну назву файлу')
 
-    if filename == conversations_files[0]:
+    if filename == conversations_files[0] or not os.path.isfile('./result.json'):
+        index_filename = conversations_files.index(filename)
+        conversations_files = conversations_files[index_filename:]
         result = {}
         result['keywords_files'] = [file.split('.')[0] for file in keywords_files]
         result['conversations_files'] = {}
