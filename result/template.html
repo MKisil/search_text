@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="style.css">
+	<title>Result</title>
+</head>
+<body>
+	<table>
+		<tr>
+			<th>Файл</th>
+			{% for keyword_file in data['keywords_files'] %}
+				<th>{{ keyword_file }}</th>
+			{% endfor %}
+		</tr>
+		{% for conversation_file in data['conversations_files'] %}
+			<tr>
+				<td class="filename">{{ conversation_file }}</td>
+				{% for keywords_file in data['conversations_files'][conversation_file] %}
+					<td>
+						<span class="td__span {{ data['conversations_files'][conversation_file][keywords_file]['color'] }}">
+							{{ data['conversations_files'][conversation_file][keywords_file]['count'] }}
+						</span>
+						<p>({{ data['conversations_files'][conversation_file][keywords_file]['count'] }}/{{ data['conversations_files'][conversation_file][keywords_file]['len_text'] }})</p>
+					</td>
+				{% endfor %}
+			</tr>
+		{% endfor %}
+	</table>
+</body>
+</html>

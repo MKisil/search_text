@@ -1,0 +1,43 @@
+table {
+	font-family: sans-serif;
+	text-align: center;
+	border-spacing: 5px
+}
+
+th {
+	background-color:  	#D3D3D3;
+	padding: 12px;
+
+}
+
+td {
+	background-color:  	#DCDCDC;
+	padding: 12px;
+}
+
+p {
+    margin: 5 0 0 0;
+    font-size: 13px;
+}
+
+.td__span {
+	padding: 7px;
+	border-radius: 12px;
+	font-weight: 600;
+}
+
+.green {
+	background-color: #3fa30d;
+}
+
+.yellow {
+	background-color: #f5bf42;
+}
+
+.red {
+	background-color: #f54242;
+}
+
+.grey {
+	background-color: #88898a;
+}
