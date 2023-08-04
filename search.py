@@ -1,6 +1,8 @@
 import json
 import os
 import re
+from pathlib import Path
+
 import pymorphy2
 import jinja2
 from fuzzywuzzy import fuzz
@@ -76,8 +78,10 @@ def get_color_keywords(cnt_keywords, colors):
 
 
 def search():
-    keywords_files = os.listdir('keywords')
-    conversations_files = os.listdir('conversations')
+    directory_conversations_path = Path('conversations')
+    conversations_files = [file.name for file in directory_conversations_path.iterdir() if file.is_file()]
+    directory_keywords_path = Path('keywords')
+    keywords_files = [file.name for file in directory_keywords_path.iterdir() if file.is_file()]
 
     while True:
         filename = input('Введіть назву файлу із якого потрібно почати(наприклад ria_00.txt): ')
