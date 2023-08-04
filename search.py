@@ -79,9 +79,9 @@ def get_color_keywords(cnt_keywords, colors):
 
 def search():
     directory_conversations_path = Path('conversations')
-    conversations_files = [file.name for file in directory_conversations_path.iterdir() if file.is_file()]
+    conversations_files = sorted([file.name for file in directory_conversations_path.iterdir() if file.is_file()])
     directory_keywords_path = Path('keywords')
-    keywords_files = [file.name for file in directory_keywords_path.iterdir() if file.is_file()]
+    keywords_files = sorted([file.name for file in directory_keywords_path.iterdir() if file.is_file()])
 
     while True:
         filename = input('Введіть назву файлу із якого потрібно почати(наприклад ria_00.txt): ')
