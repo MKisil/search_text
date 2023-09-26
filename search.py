@@ -17,6 +17,10 @@ def search_keywords(k_words, text, src_text):
     def actions():
         nonlocal src_text, count_kwords
         match = re.search(rf'\W{{,2}}?{w}\W{{,2}}?', src_text)
+        if not match:
+            match = re.search(rf'\W{{,2}}?{kw}\W{{,2}}?', src_text)
+            if not match:
+                return
         found_word = match.group()
         indexes_kwords.setdefault(kw, []).append(match.start() + (len(found_word) - len(re.sub(r'^\W+', '', found_word))))
         src_text = src_text.replace(found_word, '-' * len(found_word), 1)
@@ -84,7 +88,7 @@ def delete_word_from_text(w, text):
 def prepare_text(text, symbols_to_delete):
     text = text.lower().strip()
     for symbol in symbols_to_delete:
-        text = text.replace(symbol, '')
+        text = text.replace(symbol, ' ')
 
     return text
 
@@ -132,7 +136,7 @@ def search():
         with open(f'conversations/{conversation_file}', 'r', encoding='utf-8') as file:
             text = file.read()
             src_convo_text = text.lower()
-            conversation_text = prepare_text(text, '-,.?!;:…_«»*').split()
+            conversation_text = prepare_text(text, ['- ',' - ',' -',',','.','?','!',';',':','…','_','«','»','*', '"', '\'']).split()
 
         text_for_search_phrases = " ".join(conversation_text)
         text_for_search_words = [w for w in conversation_text if len(w) > 2]
