@@ -10,46 +10,69 @@ from fuzzywuzzy import fuzz
 morph = pymorphy2.MorphAnalyzer(lang='uk')
 
 
-def search_keywords(k_words, text):
+def search_keywords(k_words, text, src_text):
     count_kwords = 0
+    indexes_kwords = {}
+
+    def actions():
+        nonlocal src_text, count_kwords
+        match = re.search(rf'\W{{,2}}?{w}\W{{,2}}?', src_text)
+        found_word = match.group()
+        indexes_kwords.setdefault(kw, []).append(match.start() + (len(found_word) - len(re.sub(r'^\W+', '', found_word))))
+        src_text = src_text.replace(found_word, '-' * len(found_word), 1)
+        count_kwords += 1
+        delete_word_from_text(w, text)
+
     for kw in k_words:
         normal_form_kw = morph.parse(kw)[0].normal_form
         for w in text:
             if fuzz.ratio(kw, w) > 65:
                 normal_form_w = morph.parse(w)[0].normal_form
                 if bool(re.match(rf'{kw}?[а-яіїєґ]{{,3}}', w)) or bool(re.match(rf'{w}[а-яіїєґ]{{,3}}\b', kw)):
-                    count_kwords += 1
-                    delete_word_from_text(w, text)
+                    actions()
                 elif ('не' in w[:2] or 'не' in kw[:2]) and not ('не' in w[:2] and 'не' in kw[:2]):
                     continue
                 elif bool(re.match(rf'{normal_form_kw}?[а-яіїєґ]{{,3}}', normal_form_w)):
-                    count_kwords += 1
-                    delete_word_from_text(w, text)
-                elif fuzz.ratio(normal_form_kw, normal_form_w) >= 80:
-                    count_kwords += 1
-                    delete_word_from_text(w, text)
-                elif fuzz.ratio(kw, w) >= 80:
-                    count_kwords += 1
-                    delete_word_from_text(w, text)
+                    actions()
+                elif fuzz.ratio(normal_form_kw, normal_form_w) > 80:
+                    actions()
+                elif fuzz.ratio(kw, w) > 80:
+                    actions()
 
-    return count_kwords
+    return count_kwords, indexes_kwords
 
 
-def search_keyphrases(k_phrases, text):
+def search_keyphrases(k_phrases, text, src_text):
     count_kphrases = 0
+    indexes_kphrases = {}
+
+    def actions(f_ph):
+        nonlocal src_text
+        match = re.search(rf'\W{{,2}}?{f_ph}\W{{,2}}?', src_text)
+        if not match:
+            return
+        found_ph = match.group()
+        indexes_kphrases.setdefault(ph, []).append(match.start() + (len(found_ph) - len(re.sub(r'^\W+', '', found_ph))))
+        src_text = src_text.replace(found_ph, '-' * len(found_ph), 1)
+
     for ph in k_phrases:
         updated_text, phrases_cnt = re.subn(rf'\b{ph[:-1]}?[а-яіїєґ]{{,2}}', '', text)
+        matches = list(re.finditer(rf'\b{ph[:-1]}?[а-яіїєґ]{{,2}}', text))
         text = updated_text
+
+        for f_ph in [m.group() for m in matches]:
+            actions(f_ph)
 
         phrase_words = ph.split()
         for i in range(len(text.split())):
             text_slice = " ".join(text.split()[i:i + len(phrase_words)])
-            if fuzz.ratio(ph, text_slice) >= 85:
+            if fuzz.ratio(ph, text_slice) >= 90 and ph.split()[0] == text_slice.split()[0]:
+                actions(text_slice)
                 phrases_cnt += 1
 
         count_kphrases += phrases_cnt
 
-    return count_kphrases
+    return count_kphrases, indexes_kphrases
 
 
 def delete_word_from_text(w, text):
@@ -107,11 +130,15 @@ def search():
     for conversation_file in conversations_files:
         print(f'Обробка файлу {conversation_file}')
         with open(f'conversations/{conversation_file}', 'r', encoding='utf-8') as file:
-            conversation_text = prepare_text(file.read(), '-,.?!;:…_«»*').split()
+            text = file.read()
+            src_convo_text = text.lower()
+            conversation_text = prepare_text(text, '-,.?!;:…_«»*').split()
 
         text_for_search_phrases = " ".join(conversation_text)
         text_for_search_words = [w for w in conversation_text if len(w) > 2]
 
+        indexes_kwords = {}
+        indexes_kwords[conversation_file] = {}
         result['conversations_files'][conversation_file] = {}
         for keyword_file in keywords_files:
             with open(f'keywords/{keyword_file}', 'r', encoding='utf-8') as file:
@@ -121,15 +148,23 @@ def search():
                 k_words = set([i for i in keywords if ' ' not in i])
                 k_phrases = set([i for i in keywords if ' ' in i])
 
-            count_kwords = search_keywords(k_words, text_for_search_words)
-            count_kphrases = search_keyphrases(k_phrases, text_for_search_phrases)
+            count_kwords, indexes_w = search_keywords(k_words, text_for_search_words, src_convo_text)
+            count_kphrases, indexes_ph = search_keyphrases(k_phrases, text_for_search_phrases, src_convo_text)
 
             count = count_kwords + count_kphrases
+
+            indexes_w.update(indexes_ph)
+
+            indexes_kwords[conversation_file][keyword_file] = indexes_w if indexes_w else 'не знайдено слів'
             result['conversations_files'][conversation_file][keyword_file] = {
                 "count": count,
                 "len_text": len(conversation_text),
                 "color": get_color_keywords(count, colors)
             }
+
+        with open(f'indexes_kwords/{conversation_file}', 'w', encoding='utf-8') as file:
+            for keyword_file, indexes in indexes_kwords[conversation_file].items():
+                file.write(f"{keyword_file}: {indexes}\n")
 
         with open('result.json', 'w', encoding='utf-8') as file:
             json.dump(result, file, indent=2, ensure_ascii=False)
@@ -154,9 +189,3 @@ def generate_html():
 if __name__ == '__main__':
     search()
     generate_html()
-
-
-
-
-
-
