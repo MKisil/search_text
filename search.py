@@ -22,7 +22,7 @@ def search_keywords(k_words, text, src_text):
             if not match:
                 return
         found_word = match.group()
-        indexes_kwords.setdefault(kw, []).append(match.start() + (len(found_word) - len(re.sub(r'^\W+', '', found_word))))
+        indexes_kwords.setdefault(kw, []).append((match.start() + (len(found_word) - len(re.sub(r'^\W+', '', found_word))), match.end() - (len(found_word) - len(re.sub(r'^\W+', '', found_word[::-1])))))
         src_text = src_text.replace(found_word, '-' * len(found_word), 1)
         count_kwords += 1
         delete_word_from_text(w, text)
@@ -56,7 +56,7 @@ def search_keyphrases(k_phrases, text, src_text):
         if not match:
             return
         found_ph = match.group()
-        indexes_kphrases.setdefault(ph, []).append(match.start() + (len(found_ph) - len(re.sub(r'^\W+', '', found_ph))))
+        indexes_kphrases.setdefault(ph, []).append((match.start() + (len(found_ph) - len(re.sub(r'^\W+', '', found_ph))), match.end() - (len(found_ph) - len(re.sub(r'^\W+', '', found_ph[::-1])))))
         src_text = src_text.replace(found_ph, '-' * len(found_ph), 1)
 
     for ph in k_phrases:
@@ -165,6 +165,21 @@ def search():
                 "len_text": len(conversation_text),
                 "color": get_color_keywords(count, colors)
             }
+
+        with open(f'conversations2/{conversation_file}', 'w', encoding='utf-8') as file:
+            cnt = 0
+            lst_indexes = []
+
+            for indexes in indexes_kwords[conversation_file].values():
+                if type(indexes) != str:
+                    for index in indexes.values():
+                        lst_indexes += index
+
+            for i in sorted(lst_indexes):
+                text = text[:i[0]+cnt] + '<b>' + text[i[0]+cnt:i[1]+cnt] + '</b>' + text[i[1]+cnt:]
+                cnt += 7
+
+            file.write(text)
 
         with open(f'indexes_kwords/{conversation_file}', 'w', encoding='utf-8') as file:
             for keyword_file, indexes in indexes_kwords[conversation_file].items():
