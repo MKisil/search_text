@@ -51,10 +51,13 @@ def search_keyphrases(k_phrases, text, src_text):
     indexes_kphrases = {}
 
     def actions(f_ph):
-        nonlocal src_text
+        nonlocal src_text, count_kphrases
         match = re.search(rf'\W{{,2}}?{f_ph}\W{{,2}}?', src_text)
         if not match:
-            return
+            match = re.search(rf'\W{{,2}}?{ph}\W{{,2}}?', src_text)
+            if not match:
+                count_kphrases -= 1
+                return
         found_ph = match.group()
         indexes_kphrases.setdefault(ph, []).append((match.start() + (len(found_ph) - len(re.sub(r'^\W+', '', found_ph))), match.end() - (len(found_ph) - len(re.sub(r'^\W+', '', found_ph[::-1])))))
         src_text = src_text.replace(found_ph, '-' * len(found_ph), 1)
@@ -136,7 +139,7 @@ def search():
         with open(f'conversations/{conversation_file}', 'r', encoding='utf-8') as file:
             text = file.read()
             src_convo_text = text.lower()
-            conversation_text = prepare_text(text, ['- ',' - ',' -',',','.','?','!',';',':','…','_','«','»','*', '"', '\'']).split()
+            conversation_text = prepare_text(text, ['- ',' - ',' -',',','.','?','!',';',':','…','_','«','»','*', '"']).split()
 
         text_for_search_phrases = " ".join(conversation_text)
         text_for_search_words = [w for w in conversation_text if len(w) > 2]
@@ -148,9 +151,9 @@ def search():
             with open(f'keywords/{keyword_file}', 'r', encoding='utf-8') as file:
                 file_text = file.read()
                 colors = file_text.strip().split('\n')[0].split()
-                keywords = prepare_text(file_text, '-,.?!;:…_«»*').split('\n')[1:]
-                k_words = set([i for i in keywords if ' ' not in i])
-                k_phrases = set([i for i in keywords if ' ' in i])
+                keywords = prepare_text(file_text, ['- ',' - ',' -',',','.','?','!',';',':','…','_','«','»','*', '"']).split('\n')[1:]
+                k_words = sorted(set([i for i in keywords if ' ' not in i]))
+                k_phrases = (set([i for i in keywords if ' ' in i]))
 
             count_kwords, indexes_w = search_keywords(k_words, text_for_search_words, src_convo_text)
             count_kphrases, indexes_ph = search_keyphrases(k_phrases, text_for_search_phrases, src_convo_text)
