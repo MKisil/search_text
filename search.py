@@ -63,8 +63,8 @@ def search_keyphrases(k_phrases, text, src_text):
         src_text = src_text.replace(found_ph, '-' * len(found_ph), 1)
 
     for ph in k_phrases:
-        updated_text, phrases_cnt = re.subn(rf'\b{ph[:-1]}?[а-яіїєґ]{{,2}}', '', text)
-        matches = list(re.finditer(rf'\b{ph[:-1]}?[а-яіїєґ]{{,2}}', text))
+        updated_text, phrases_cnt = re.subn(rf'\b{ph}[а-яіїєґ]{{,1}}', '', text)
+        matches = list(re.finditer(rf'\b{ph}[а-яіїєґ]{{,1}}', text))
         text = updated_text
 
         for f_ph in [m.group() for m in matches]:
@@ -73,7 +73,7 @@ def search_keyphrases(k_phrases, text, src_text):
         phrase_words = ph.split()
         for i in range(len(text.split())):
             text_slice = " ".join(text.split()[i:i + len(phrase_words)])
-            if fuzz.ratio(ph, text_slice) >= 90 and ph.split()[0] == text_slice.split()[0]:
+            if fuzz.ratio(ph, text_slice) > 90 and ph.split()[0] == text_slice.split()[0]:
                 actions(text_slice)
                 phrases_cnt += 1
 
