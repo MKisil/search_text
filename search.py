@@ -153,7 +153,7 @@ def search():
                 colors = file_text.strip().split('\n')[0].split()
                 keywords = prepare_text(file_text, ['- ',' - ',' -',',','.','?','!',';',':','…','_','«','»','*', '"']).split('\n')[1:]
                 k_words = sorted(set([i for i in keywords if ' ' not in i]))
-                k_phrases = (set([i for i in keywords if ' ' in i]))
+                k_phrases = sorted(set([i for i in keywords if ' ' in i]))
 
             count_kwords, indexes_w = search_keywords(k_words, text_for_search_words, src_convo_text)
             count_kphrases, indexes_ph = search_keyphrases(k_phrases, text_for_search_phrases, src_convo_text)
