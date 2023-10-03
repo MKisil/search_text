@@ -178,7 +178,17 @@ def search():
                     for index in indexes.values():
                         lst_indexes += index
 
-            for i in sorted(lst_indexes):
+            lst_indexes2 = []
+            for i in lst_indexes:
+                included_in_j = False
+                for j in lst_indexes:
+                    if i[0] >= j[0] and i[1] <= j[1] and i != j:
+                        included_in_j = True
+                        break
+                if not included_in_j:
+                    lst_indexes2.append(i)
+
+            for i in sorted(lst_indexes2):
                 text = text[:i[0]+cnt] + '<b>' + text[i[0]+cnt:i[1]+cnt] + '</b>' + text[i[1]+cnt:]
                 cnt += 7
 
