@@ -81,7 +81,7 @@ def search_keyphrases(k_phrases, text, src_text):
 
         count_kphrases += phrases_cnt
 
-    return count_kphrases, indexes_kphrases, text
+    return count_kphrases, indexes_kphrases, text, src_text
 
 
 def delete_word_from_text(w, text):
@@ -154,8 +154,8 @@ def search():
                 k_words = sorted(set([i for i in keywords if ' ' not in i]), reverse=True)
                 k_phrases = sorted(set([i for i in keywords if ' ' in i]), reverse=True)
 
-            count_kphrases, indexes_ph, changed_text = search_keyphrases(k_phrases, conversation_text, src_convo_text)
-            count_kwords, indexes_w = search_keywords(k_words, changed_text, src_convo_text)
+            count_kphrases, indexes_ph, changed_text, changed_src_text = search_keyphrases(k_phrases, conversation_text, src_convo_text)
+            count_kwords, indexes_w = search_keywords(k_words, changed_text, changed_src_text)
 
             count = count_kwords + count_kphrases
 
