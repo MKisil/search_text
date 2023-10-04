@@ -11,6 +11,7 @@ morph = pymorphy2.MorphAnalyzer(lang='uk')
 
 
 def search_keywords(k_words, text, src_text):
+    text = text.split()
     count_kwords = 0
     indexes_kwords = {}
 
@@ -51,7 +52,7 @@ def search_keyphrases(k_phrases, text, src_text):
     indexes_kphrases = {}
 
     def actions(f_ph):
-        nonlocal src_text, count_kphrases
+        nonlocal text, src_text, count_kphrases
         match = re.search(rf'\W{{,2}}?{f_ph}\W{{,2}}?', src_text)
         if not match:
             match = re.search(rf'\W{{,2}}?{ph}\W{{,2}}?', src_text)
@@ -61,6 +62,7 @@ def search_keyphrases(k_phrases, text, src_text):
         found_ph = match.group()
         indexes_kphrases.setdefault(ph, []).append((match.start() + (len(found_ph) - len(re.sub(r'^\W+', '', found_ph))), match.end() - (len(found_ph) - len(re.sub(r'^\W+', '', found_ph[::-1])))))
         src_text = src_text.replace(found_ph, '-' * len(found_ph), 1)
+        text = re.sub(rf'\b{f_ph}\b', '', text, count=1)
 
     for ph in k_phrases:
         updated_text, phrases_cnt = re.subn(rf'\b{ph}[а-яіїєґ]{{,1}}', '', text)
@@ -79,7 +81,7 @@ def search_keyphrases(k_phrases, text, src_text):
 
         count_kphrases += phrases_cnt
 
-    return count_kphrases, indexes_kphrases
+    return count_kphrases, indexes_kphrases, text
 
 
 def delete_word_from_text(w, text):
@@ -139,10 +141,7 @@ def search():
         with open(f'conversations/{conversation_file}', 'r', encoding='utf-8') as file:
             text = file.read()
             src_convo_text = text.lower()
-            conversation_text = prepare_text(text, ['- ',' - ',' -',',','.','?','!',';',':','…','_','«','»','*', '"']).split()
-
-        text_for_search_phrases = " ".join(conversation_text)
-        text_for_search_words = [w for w in conversation_text if len(w) > 2]
+            conversation_text = prepare_text(text, ['- ',' - ',' -',',','.','?','!',';',':','…','_','«','»','*', '"'])
 
         indexes_kwords = {}
         indexes_kwords[conversation_file] = {}
@@ -155,8 +154,8 @@ def search():
                 k_words = sorted(set([i for i in keywords if ' ' not in i]), reverse=True)
                 k_phrases = sorted(set([i for i in keywords if ' ' in i]), reverse=True)
 
-            count_kwords, indexes_w = search_keywords(k_words, text_for_search_words, src_convo_text)
-            count_kphrases, indexes_ph = search_keyphrases(k_phrases, text_for_search_phrases, src_convo_text)
+            count_kphrases, indexes_ph, changed_text = search_keyphrases(k_phrases, conversation_text, src_convo_text)
+            count_kwords, indexes_w = search_keywords(k_words, changed_text, src_convo_text)
 
             count = count_kwords + count_kphrases
 
